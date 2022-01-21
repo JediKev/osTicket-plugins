@@ -67,7 +67,7 @@ class Auth2FABackend extends TwoFactorAuthenticationBackend {
         // upstream validation might throw an exception due to expired token
         // or too many attempts (timeout). It's the responsibility of the
         // caller to catch and handle such exceptions.
-        $secretKey = self::getSecretKey();
+        $secretKey = $this->getSecretKey();
         if (!$this->_validate($secretKey))
             return false;
 
@@ -89,7 +89,7 @@ class Auth2FABackend extends TwoFactorAuthenticationBackend {
 
         // Generate Secret Key
         if (!$this->secretKey)
-            $this->secretKey = self::getSecretKey($user);
+            $this->secretKey = $this->getSecretKey($user);
 
         $this->store($this->secretKey);
 
@@ -115,7 +115,7 @@ class Auth2FABackend extends TwoFactorAuthenticationBackend {
 
     function validateLoginCode($code) {
         $auth2FA = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
-        $secretKey = self::getSecretKey();
+        $secretKey = $this->getSecretKey();
 
         return $auth2FA->checkCode($secretKey, $code);
     }
@@ -145,22 +145,23 @@ class Auth2FABackend extends TwoFactorAuthenticationBackend {
         global $cfg;
 
         $staffEmail = $staff->getEmail();
-        $secretKey = self::getSecretKey($staff);
+        $secretKey = $this->getSecretKey($staff);
 
         return \Sonata\GoogleAuthenticator\GoogleQrUrl::generate($staffEmail, $secretKey, $cfg->getTitle());
     }
 
     function validateQRCode($staff=false) {
         $auth2FA = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
-        $secretKey = self::getSecretKey($staff);
+        $secretKey = $this->getSecretKey($staff);
         $code = self::getCode();
 
         return $auth2FA->checkCode($secretKey, $code);
     }
 
-    function getCode() {
+    static function getCode() {
         $auth2FA = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
-        $secretKey = self::getSecretKey();
+        $self = new Auth2FABackend();
+        $secretKey = $self->getSecretKey();
 
         return $auth2FA->getCode($secretKey);
     }
